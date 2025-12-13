@@ -474,7 +474,7 @@ function nextDay() {
                 }
 
                 dailyLogs.push({ 
-                    text: `${names}${getJosa(group[group.length-1].name, '은/는')} ${isTravel ? '여행을 떠나' : getLocationName(locId)}에서 함께 ${processedText}.`, 
+                    text: `${names}${getJosa(group[group.length-1].name, '은/는')} ${isTravel ? '여행을 떠나' : getLocationName(locId)+'에서'} 함께 ${processedText}.`, 
                     type: isTravel ? 'event' : 'social' 
                 });
             }
@@ -918,3 +918,4 @@ function drawRelationshipMap() {
         ctx.fillText(node.char.name, node.x, node.y);
     });
 }
+
