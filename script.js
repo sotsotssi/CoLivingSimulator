@@ -439,7 +439,7 @@ function nextDay() {
                     actor.currentAction = action.name;
                     target.currentAction = `함께 ${action.name}`;
 
-                    dailyLogs.push({ text: `${actor.name}${getJosa(actor.name, '와/과')} ${target.name}${getJosa(target.name, '은/는')} ${isTravel ? '여행지' : getLocationName(locId)} ${processedText}.`, type: isTravel ? 'event' : 'social' });
+                    dailyLogs.push({ text: `${actor.name}${getJosa(actor.name, '와/과')} ${target.name}${getJosa(target.name, '은/는')} ${isTravel ? '여행을 떠나' : getLocationName(locId)+'에서'} ${processedText}.`, type: isTravel ? 'event' : 'social' });
                 }
 
             } else {
@@ -470,7 +470,7 @@ function nextDay() {
                 }
 
                 dailyLogs.push({ 
-                    text: `${names}${getJosa(group[group.length-1].name, '은/는')} ${isTravel ? '여행지' : getLocationName(locId)}에서 함께 ${processedText}.`, 
+                    text: `${names}${getJosa(group[group.length-1].name, '은/는')} ${isTravel ? '여행을 떠나' : getLocationName(locId)}에서 함께 ${processedText}.`, 
                     type: isTravel ? 'event' : 'social' 
                 });
             }
