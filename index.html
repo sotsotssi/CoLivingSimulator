@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>공동 주택 생활 시뮬레이터</title>
+    <title>아파트 시뮬레이터</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -47,7 +47,7 @@
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <i class="fa-solid fa-building-user text-brand-600 text-2xl"></i>
-                <h1 class="text-xl font-bold tracking-tight">아파트 라이프 <span class="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">v1.5</span></h1>
+                <h1 class="text-xl font-bold tracking-tight">아파트 시뮬레이터 <span class="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">v1.0</span></h1>
             </div>
             
             <nav class="flex gap-1 bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">
@@ -78,7 +78,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">호실 (선택)</label>
+                        <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">호실</label>
                         <select id="input-room" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 w-28">
                             <option value="auto">자동 배정</option>
                         </select>
@@ -129,7 +129,7 @@
         <section id="location-view" class="hidden h-full flex flex-col gap-4 fade-in">
              <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center">
                 <h2 class="text-lg font-bold"><i class="fa-solid fa-map-location-dot mr-2 text-brand-500"></i>장소 현황</h2>
-                <span class="text-sm text-slate-500" id="current-time-display">@bb_uu_t</span>
+                <a href="https://x.com/bb_uu_t" target="_blank"><span class="text-sm text-slate-500" id="current-time-display">@bb_uu_t</span></a>
             </div>
 
             <div class="flex-1 overflow-hidden flex flex-col md:flex-row gap-4">
