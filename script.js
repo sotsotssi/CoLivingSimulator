@@ -144,7 +144,11 @@ function getRelationshipLabel(score, specialStatus) {
 }
 
 function getHeartHTML(score, specialStatus) {
-    if (specialStatus === 'lover') return `<i class="fa-solid fa-heart heart-lover"></i><i class="fa-solid fa-heart heart-lover"></i><i class="fa-solid fa-heart heart-lover"></i>`;
+    if (specialStatus === 'lover') {
+        let html = '';
+        for(let i=0; i<5; i++) html += `<i class="fa-solid fa-heart heart-lover"></i>`;
+        return html;
+    }
     if (score === 0) return `<i class="fa-regular fa-heart heart-empty"></i>`;
     
     let html = '';
@@ -815,4 +819,102 @@ function toggleTheme() {
     isDarkMode = !isDarkMode;
     if (isDarkMode) { document.documentElement.classList.add('dark'); localStorage.setItem('theme', 'dark'); }
     else { document.documentElement.classList.remove('dark'); localStorage.setItem('theme', 'light'); }
+}
+
+function openRelationshipMap() {
+    const modal = document.getElementById('relationship-map-modal');
+    modal.classList.remove('hidden');
+    drawRelationshipMap();
+    
+    window.addEventListener('resize', drawRelationshipMap);
+}
+
+function closeRelationshipMap() {
+    const modal = document.getElementById('relationship-map-modal');
+    modal.classList.add('hidden');
+    window.removeEventListener('resize', drawRelationshipMap);
+}
+
+function drawRelationshipMap() {
+    const canvas = document.getElementById('relationship-canvas');
+    const ctx = canvas.getContext('2d');
+    const container = canvas.parentElement;
+    
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (characters.length === 0) {
+        ctx.font = "14px Noto Sans KR";
+        ctx.fillStyle = isDarkMode ? "#94a3b8" : "#64748b";
+        ctx.textAlign = "center";
+        ctx.fillText("표시할 캐릭터가 없습니다.", canvas.width/2, canvas.height/2);
+        return;
+    }
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = Math.min(centerX, centerY) * 0.8;
+    
+    const angleStep = (2 * Math.PI) / characters.length;
+    const nodes = characters.map((char, index) => {
+        const angle = angleStep * index - Math.PI / 2;
+        return {
+            x: centerX + Math.cos(angle) * radius,
+            y: centerY + Math.sin(angle) * radius,
+            char: char,
+            angle: angle
+        };
+    });
+
+    ctx.lineWidth = 1;
+    
+    nodes.forEach(source => {
+        nodes.forEach(target => {
+            if (source === target) return;
+            
+            const relScore = source.char.relationships[target.char.id] || 0;
+            const special = source.char.specialRelations?.[target.char.id];
+            
+            if (relScore === 0 && !special) return;
+
+            let color = isDarkMode ? "#475569" : "#cbd5e1";
+            if (special === 'lover') color = "#db2777";
+            else if (relScore >= 60) color = "#2563eb";
+            else if (relScore >= 20) color = "#16a34a";
+            else if (relScore <= -60) color = "#dc2626";
+            else if (relScore <= -20) color = "#ea580c";
+            
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = special === 'lover' ? 2 : 1;
+            
+            const midX = (source.x + target.x) / 2;
+            const midY = (source.y + target.y) / 2;
+            
+            const dx = midX - centerX;
+            const dy = midY - centerY;
+            
+            ctx.moveTo(source.x, source.y);
+            ctx.quadraticCurveTo(centerX, centerY, target.x, target.y);
+            ctx.stroke();
+        });
+    });
+
+    nodes.forEach(node => {
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 20, 0, 2 * Math.PI);
+        ctx.fillStyle = isDarkMode ? "#1e293b" : "#ffffff";
+        ctx.fill();
+        ctx.strokeStyle = isDarkMode ? "#475569" : "#cbd5e1";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        ctx.font = "bold 12px Noto Sans KR";
+        ctx.fillStyle = isDarkMode ? "#e2e8f0" : "#1e293b";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(node.char.name, node.x, node.y);
+    });
 }
