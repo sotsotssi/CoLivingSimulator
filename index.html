@@ -47,7 +47,7 @@
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <i class="fa-solid fa-building-user text-brand-600 text-2xl"></i>
-                <h1 class="text-xl font-bold tracking-tight">아파트 시뮬레이터 <span class="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">v1.0</span></h1>
+                <h1 class="text-xl font-bold tracking-tight">아파트 시뮬레이터 <a href="https://x.com/bb_uu_t" target="_blank"><span class="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">@bb_uu_t</span></a></h1>
             </div>
             
             <nav class="flex gap-1 bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">
@@ -104,6 +104,10 @@
                         </div>
                     </div>
 
+                    <button onclick="openRelationshipMap()" class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800/50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <i class="fa-solid fa-circle-nodes mr-1"></i> 관계도
+                    </button>
+
                     <button onclick="toggleAffectionMode()" id="btn-affection-mode" class="border border-brand-200 dark:border-brand-800 text-brand-600 dark:text-brand-400 px-3 py-2 rounded-lg text-sm font-medium hover:bg-brand-50 dark:hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-heart mr-1"></i> 호감도 확인
                     </button>
@@ -129,7 +133,6 @@
         <section id="location-view" class="hidden h-full flex flex-col gap-4 fade-in">
              <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center">
                 <h2 class="text-lg font-bold"><i class="fa-solid fa-map-location-dot mr-2 text-brand-500"></i>장소 현황</h2>
-                <a href="https://x.com/bb_uu_t" target="_blank"><span class="text-sm text-slate-500" id="current-time-display">@bb_uu_t</span></a>
             </div>
 
             <div class="flex-1 overflow-hidden flex flex-col md:flex-row gap-4">
@@ -216,6 +219,29 @@
             </div>
             <div class="p-3 bg-slate-50 dark:bg-slate-900 text-xs text-center text-slate-500">
                 호감도는 -100 ~ 100 사이이며, 상호작용에 따라 변동됩니다.
+            </div>
+        </div>
+    </div>
+
+    <div id="relationship-map-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full h-full max-w-4xl max-h-[80vh] flex flex-col overflow-hidden transform transition-all scale-100">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-purple-50 dark:bg-purple-900/20">
+                <h3 class="font-bold text-lg flex items-center text-purple-800 dark:text-purple-200">
+                    <i class="fa-solid fa-circle-nodes mr-2"></i>입주민 관계도
+                </h3>
+                <button onclick="closeRelationshipMap()" class="w-8 h-8 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="flex-1 relative bg-slate-50 dark:bg-slate-900 p-4 overflow-hidden flex flex-col">
+                <canvas id="relationship-canvas" class="flex-1 w-full h-full"></canvas>
+                <div class="mt-2 flex flex-wrap gap-3 justify-center text-xs text-slate-500 dark:text-slate-400">
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#db2777] mr-1"></span>연인</div>
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#2563eb] mr-1"></span>매우 좋음</div>
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#16a34a] mr-1"></span>좋음</div>
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#ea580c] mr-1"></span>나쁨</div>
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#dc2626] mr-1"></span>매우 나쁨</div>
+                </div>
             </div>
         </div>
     </div>
