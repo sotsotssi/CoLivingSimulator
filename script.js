@@ -140,7 +140,7 @@ function getRelationshipLabel(score, specialStatus) {
     if (score < 40) return "친구";
     if (score < 60) return "절친";
     if (score < 80) return "신뢰";
-    return "소울메이트(친구)"; 
+    return "소울메이트"; 
 }
 
 function getHeartHTML(score, specialStatus) {
@@ -439,7 +439,7 @@ function nextDay() {
                     actor.currentAction = action.name;
                     target.currentAction = `함께 ${action.name}`;
 
-                    dailyLogs.push({ text: `${actor.name}${getJosa(actor.name, '와/과')} ${target.name}${getJosa(target.name, '은/는')} ${isTravel ? '여행지' : getLocationName(locId)}에서 ${processedText} (함께함)`, type: isTravel ? 'event' : 'social' });
+                    dailyLogs.push({ text: `${actor.name}${getJosa(actor.name, '와/과')} ${target.name}${getJosa(target.name, '은/는')} ${isTravel ? '여행지' : getLocationName(locId)} ${processedText}.`, type: isTravel ? 'event' : 'social' });
                 }
 
             } else {
@@ -470,7 +470,7 @@ function nextDay() {
                 }
 
                 dailyLogs.push({ 
-                    text: `${names}${getJosa(group[group.length-1].name, '은/는')} ${isTravel ? '여행지' : getLocationName(locId)}에서 ${processedText} (단체 행동)`, 
+                    text: `${names}${getJosa(group[group.length-1].name, '은/는')} ${isTravel ? '여행지' : getLocationName(locId)}에서 함께 ${processedText}.`, 
                     type: isTravel ? 'event' : 'social' 
                 });
             }
@@ -754,7 +754,7 @@ function exportData(includeRelationships) {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ version: 1.5, type: includeRelationships ? 'full' : 'basic', day: includeRelationships ? day : 1, data: exportData }));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", `housing_sim_${includeRelationships ? 'full' : 'basic'}_${Date.now()}.json`);
+    downloadAnchorNode.setAttribute("download", `housing_simul_${includeRelationships ? 'full' : 'basic'}_${Date.now()}.json`);
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
