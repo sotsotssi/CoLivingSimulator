@@ -38,17 +38,16 @@ const PLACES = [
 ];
 
 const WORD_SETS = {
-    genre: ['SF', '로맨스', '추리', '무협', '판타지', '공포', '역사', '자기계발'],
-    food: ['김치찌개', '된장찌개', '파스타', '스테이크', '라면', '치킨', '삼겹살', '샐러드', '떡볶이'],
-    hobby: ['유튜브', '넷플릭스', '게임', '음악', '영화', '홈트레이닝'],
-    study: ['수학', '영어', '코딩', '철학', '경제', '역사', '디자인'],
-    topic: ['연예인', '주식', '날씨', '취미', '과거', '미래', '고민', '맛집'],
-    book: ['만화책', '잡지', '소설책', '에세이'],
-    destination: ['제주도', '부산', '강릉', '여수', '대전', '오사카', '도쿄', '파리', '런던', '하와이', '방콕']
+    genre: ['SF', '로맨스', '추리', '무협', '판타지', '공포', '역사', '자기계발', '코미디', '드라마', '스릴러', '다큐멘터리', '모험', '음악', '액션', '스포츠'],
+    food: ['김치찌개', '된장찌개', '파스타', '스테이크', '라면', '치킨', '삼겹살', '샐러드', '떡볶이', '피자', '초밥', '비빔밥', '칼국수', '돈가스', '햄버거', '샌드위치', '부대찌개', '김밥', '오므라이스'],
+    hobby: ['유튜브', '넷플릭스', '게임', '음악', '영화', '홈트레이닝', '독서', '드라마', '사진 촬영', '악기 연주', '요가', '명상'],
+    study: ['수학', '영어', '코딩', '철학', '경제', '역사', '디자인','일본어','중국어','프랑스어','역사','문학','심리학','예술','연극'],
+    topic: ['연예인', '주식', '날씨', '취미', '과거', '미래', '고민', '맛집', '여행', '운동', '음악', '영화', '드라마'],
+    destination: ['제주도', '부산', '강릉', '여수', '대전', '오사카', '도쿄', '파리', '런던', '하와이', '방콕','라스베이거스','뉴욕','로마','시드니','상하이','마카오']
 };
 
 const ACTIONS = [
-    { id: 'rest', name: '휴식', place: 'apt', text: ['침대에서 뒹굴거렸다', '낮잠을 잤다', '멍하니 창밖을 보았다', '스마트폰을 했다'] },
+    { id: 'rest', name: '휴식', place: 'apt', text: ['침대 위에서 뒹굴거렸다', '낮잠을 잤다', '멍하니 창밖을 보았다', '스마트폰을 했다'] },
     { id: 'leisure', name: '여가', place: 'apt', text: ['{hobby}을(를) 즐겼다', '새로운 취미를 찾았다'] },
     { id: 'cooking', name: '요리', place: 'apt', text: ['{food}을(를) 만들어 먹었다', '새로운 {food} 레시피를 시도했다'] },
     { id: 'work', name: '업무', place: 'company', text: ['보고서를 작성했다', '회의에 참석했다', '야근을 했다', '메일을 확인했다'] },
@@ -188,29 +187,30 @@ function getProbabilisticChange(score) {
         if (rand < 50) return 10;
         if (rand < 75) return 5;
         if (rand < 90) return 0;
-        return -5;
+        return -2;
     } else if (score === 4) {
         if (rand < 25) return 10;
         if (rand < 55) return 5;
         if (rand < 80) return 0;
-        if (rand < 90) return -5;
-        return -10;
+        if (rand < 90) return -2;
+        return -5;
     } else if (score === 3) {
         if (rand < 20) return 10;
         if (rand < 45) return 5;
         if (rand < 70) return 0;
-        if (rand < 95) return -5;
-        return -10;
+        if (rand < 95) return -2;
+        return -5;
     } else if (score === 2) {
         if (rand < 10) return 10;
         if (rand < 20) return 5;
         if (rand < 45) return 0;
-        if (rand < 75) return -5;
-        return -10;
+        if (rand < 75) return -2;
+        return -5;
     } else {
         if (rand < 10) return 10;
         if (rand < 25) return 5;
         if (rand < 50) return 0;
+        if (rand < 75) return -3;
         return -5;
     }
 }
@@ -372,25 +372,32 @@ function nextDay() {
                         }
                     } 
                     else if (evt.type === 'confess') {
-                        if (isLovers) {
-                            updateRelationship(actor.id, target.id, 5); updateRelationship(target.id, actor.id, 5);
-                            logText = `[사랑] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 다시 사랑을 맹세했다.`;
-                        } else if (currentScore > 50) {
-                            const chemBonus = (chemistryScore - 3) * 0.05;
-                            const successChance = 0.4 + (currentScore/200) + chemBonus;
-                            if (Math.random() < successChance) {
-                                setSpecialStatus(actor.id, target.id, 'lover'); setSpecialStatus(target.id, actor.id, 'lover');
-                                updateRelationship(actor.id, target.id, 15); updateRelationship(target.id, actor.id, 15);
-                                logText = `[고백 성공] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 고백했고, 연인이 되었다! 💖`;
-                            } else {
-                                updateRelationship(actor.id, target.id, -5); updateRelationship(target.id, actor.id, -2);
-                                logText = `[고백 실패] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 차였다...`;
-                            }
+                        if (actor.isMinor !== target.isMinor) {
+                            updateRelationship(actor.id, target.id, 2); updateRelationship(target.id, actor.id, 2);
+                            logText = `${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 호감이 있지만, 나이 차이를 의식해 마음을 접었다.`;
+                            actor.currentAction = "대화"; target.currentAction = "대화";
+                            dailyLogs.push({ text: logText, type: 'social' });
                         } else {
-                            logText = `[고백 포기] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 고백하려다 참았다.`;
+                            if (isLovers) {
+                                updateRelationship(actor.id, target.id, 5); updateRelationship(target.id, actor.id, 5);
+                                logText = `[사랑] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 다시 사랑을 맹세했다.`;
+                            } else if (currentScore > 50) {
+                                const chemBonus = (chemistryScore - 3) * 0.05;
+                                const successChance = 0.4 + (currentScore/200) + chemBonus;
+                                if (Math.random() < successChance) {
+                                    setSpecialStatus(actor.id, target.id, 'lover'); setSpecialStatus(target.id, actor.id, 'lover');
+                                    updateRelationship(actor.id, target.id, 15); updateRelationship(target.id, actor.id, 15);
+                                    logText = `[고백 성공] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 고백했고, 연인이 되었다! 💖`;
+                                } else {
+                                    updateRelationship(actor.id, target.id, -5); updateRelationship(target.id, actor.id, -2);
+                                    logText = `[고백 실패] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 차였다...`;
+                                }
+                            } else {
+                                logText = `[고백 포기] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 고백하려다 참았다.`;
+                            }
+                            actor.currentAction = evt.name; target.currentAction = `(대상) ${evt.name}`;
+                            dailyLogs.push({ text: logText, type: 'event' });
                         }
-                        actor.currentAction = evt.name; target.currentAction = `(대상) ${evt.name}`;
-                        dailyLogs.push({ text: logText, type: 'event' });
                     } 
                     else if (evt.type === 'breakup') {
                         if (isLovers) {
@@ -408,6 +415,20 @@ function nextDay() {
                         }
                         actor.currentAction = evt.name; target.currentAction = `${evt.name}`;
                         dailyLogs.push({ text: logText, type: 'event' });
+                        
+                    }
+                    else if (evt.type === 'cut') {
+                        if (isLovers) {
+                            updateRelationship(actor.id, target.id, -30); updateRelationship(target.id, actor.id, -30);
+                            logText = `[권태] ${actor.name}${getJosa(actor.name, '와/과')} ${target.name}의 사이가 소원해졌다.`;
+                            actor.currentAction = "권태"; target.currentAction = "권태";
+                            dailyLogs.push({ text: logText, type: 'event' });
+                        } else {
+                            updateRelationship(actor.id, target.id, -30); updateRelationship(target.id, actor.id, -30);
+                            logText = `[절교] ${actor.name}${getJosa(actor.name, '와/과')} ${target.name}의 사이가 멀어졌다.`;
+                            actor.currentAction = "절교"; target.currentAction = "절교";
+                            dailyLogs.push({ text: logText, type: 'event' });
+                        }
                     } 
                     else {
                         let c1 = evt.change + Math.floor(Math.random()*5);
@@ -498,6 +519,8 @@ function addCharacter() {
     const nameInput = document.getElementById('input-name');
     const mbtiInput = document.getElementById('input-mbti');
     const roomInput = document.getElementById('input-room');
+    const isMinorInput = document.getElementById('input-minor');
+
     const name = nameInput.value.trim();
     if (!name) return alert("이름을 입력해주세요.");
     if (characters.some(c => c.name === name)) return alert("이미 존재하는 이름입니다.");
@@ -508,11 +531,18 @@ function addCharacter() {
     } else if (getRoomCount(room) >= 4) return alert("해당 방은 정원 초과입니다.");
 
     characters.push({
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
-        name: name, mbti: mbtiInput.value, room: room,
-        currentLocation: 'apt', currentAction: '-', relationships: {}, specialRelations: {}
+        id: Date.now().toString() + Math.random().toString(36).substring(2, 7),
+        name: name, 
+        mbti: mbtiInput.value, 
+        room: room,
+        isMinor: isMinorInput.checked,
+        currentLocation: 'apt', 
+        currentAction: '-', 
+        relationships: {}, 
+        specialRelations: {}
     });
     nameInput.value = '';
+    isMinorInput.checked = false;
     renderCharacterList(); renderLocations(); updateUI();
 }
 
@@ -555,11 +585,15 @@ function renderCharacterList() {
     characters.forEach(char => {
         const div = document.createElement('div');
         div.className = "bg-white dark:bg-slate-700 p-4 rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm relative group hover:shadow-md transition-shadow cursor-pointer";
+        const badge = char.isMinor 
+            ? `<span class="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full ml-1" title="미성년자">🌱</span>` 
+            : `<span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full ml-1 hidden" title="성인">adult</span>`;
+
         if (affectionMode) {
             div.onclick = () => showAffectionModal(char.id);
             div.innerHTML = `
                 <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-bold text-lg dark:text-white">${char.name}</h3>
+                    <h3 class="font-bold text-lg dark:text-white">${char.name}${badge}</h3>
                     <span class="text-xs bg-brand-100 dark:bg-brand-900 text-brand-600 dark:text-brand-300 px-2 py-1 rounded-full">${char.mbti}</span>
                 </div>
                 <div class="text-sm text-slate-500 dark:text-slate-400 mb-2"><i class="fa-solid fa-door-closed mr-1"></i> ${char.room}호</div>
@@ -571,7 +605,7 @@ function renderCharacterList() {
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-600 flex items-center justify-center text-lg"><i class="fa-regular fa-user"></i></div>
                     <div>
-                        <h3 class="font-bold text-slate-900 dark:text-white leading-tight">${char.name}</h3>
+                        <h3 class="font-bold text-slate-900 dark:text-white leading-tight">${char.name}${badge}</h3>
                         <div class="text-xs text-slate-500 dark:text-slate-400">${char.mbti} · ${char.room}호</div>
                     </div>
                 </div>
@@ -749,13 +783,13 @@ function closeModal() { document.getElementById('affection-modal').classList.add
 function exportData(includeRelationships) {
     if (characters.length === 0) return alert("저장할 데이터가 없습니다.");
     const exportData = characters.map(c => {
-        const base = { name: c.name, mbti: c.mbti, room: c.room };
+        const base = { name: c.name, mbti: c.mbti, room: c.room, isMinor: c.isMinor };
         if (includeRelationships) {
             base.id = c.id; base.relationships = c.relationships; base.specialRelations = c.specialRelations; base.currentLocation = c.currentLocation; base.currentAction = c.currentAction;
         }
         return base;
     });
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ version: 1.5, type: includeRelationships ? 'full' : 'basic', day: includeRelationships ? day : 1, data: exportData }));
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ version: 1.6, type: includeRelationships ? 'full' : 'basic', day: includeRelationships ? day : 1, data: exportData }));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
     downloadAnchorNode.setAttribute("download", `housing_simul_${includeRelationships ? 'full' : 'basic'}_${Date.now()}.json`);
@@ -775,10 +809,15 @@ function importData(input) {
             if (confirm("현재 명단이 덮어씌워집니다. 진행하시겠습니까?")) {
                 day = json.day || 1;
                 characters = json.data.map(d => ({
-                    id: d.id || Date.now().toString() + Math.random().toString(36).substr(2, 5),
-                    name: d.name, mbti: d.mbti, room: d.room,
-                    currentLocation: d.currentLocation || 'apt', currentAction: d.currentAction || '-',
-                    relationships: d.relationships || {}, specialRelations: d.specialRelations || {}
+                    id: d.id || Date.now().toString() + Math.random().toString(36).substring(2, 7),
+                    name: d.name, 
+                    mbti: d.mbti, 
+                    room: d.room,
+                    isMinor: d.isMinor || false,
+                    currentLocation: d.currentLocation || 'apt', 
+                    currentAction: d.currentAction || '-',
+                    relationships: d.relationships || {}, 
+                    specialRelations: d.specialRelations || {}
                 }));
                 renderCharacterList(); renderLocations(); renderStatusTable(); clearLogs();
                 document.getElementById('total-count').textContent = characters.length;
@@ -838,13 +877,16 @@ function closeRelationshipMap() {
 function drawRelationshipMap() {
     const canvas = document.getElementById('relationship-canvas');
     const ctx = canvas.getContext('2d');
-    const container = canvas.parentElement;
     
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
+    ctx.fillStyle = isDarkMode ? "#0f172a" : "#f8fafc";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
     
+    ctx.fillStyle = isDarkMode ? "#0f172a" : "#f8fafc";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
     if (characters.length === 0) {
         ctx.font = "14px Noto Sans KR";
         ctx.fillStyle = isDarkMode ? "#94a3b8" : "#64748b";
@@ -918,4 +960,21 @@ function drawRelationshipMap() {
         ctx.fillText(node.char.name, node.x, node.y);
     });
 }
-
+function downloadMapImage() {
+    const canvas = document.getElementById('relationship-canvas');
+    
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    tempCtx.fillStyle = isDarkMode ? "#0f172a" : "#f8fafc";
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    
+    tempCtx.drawImage(canvas, 0, 0);
+    
+    const link = document.createElement('a');
+    link.download = `relationship_map_${Date.now()}.png`;
+    link.href = tempCanvas.toDataURL("image/png");
+    link.click();
+}
