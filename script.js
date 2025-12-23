@@ -37,13 +37,34 @@ const PLACES = [
     { id: 'travel', name: '여행지', type: 'travel' }
 ];
 
+const DESTINATIONS = {
+    '제주도': { min: 1, max: 3 },
+    '부산': { min: 1, max: 3 },
+    '강릉': { min: 1, max: 3 },
+    '여수': { min: 1, max: 3 },
+    '대전': { min: 1, max: 2 },
+    '오사카': { min: 2, max: 4 },
+    '도쿄': { min: 2, max: 4 },
+    '방콕': { min: 3, max: 5 },
+    '파리': { min: 4, max: 5 },
+    '런던': { min: 4, max: 5 },
+    '하와이': { min: 4, max: 5 },
+    '라스베이거스': { min: 4, max: 5 },
+    '뉴욕': { min: 4, max: 5 },
+    '로마': { min: 4, max: 5 },
+    '시드니': { min: 4, max: 5 },
+    '상하이': { min: 2, max: 4 },
+    '마카오': { min: 2, max: 4 }
+};
+
 const WORD_SETS = {
     genre: ['SF', '로맨스', '추리', '무협', '판타지', '공포', '역사', '자기계발', '코미디', '드라마', '스릴러', '다큐멘터리', '모험', '음악', '액션', '스포츠'],
     food: ['김치찌개', '된장찌개', '파스타', '스테이크', '라면', '치킨', '삼겹살', '샐러드', '떡볶이', '피자', '초밥', '비빔밥', '칼국수', '돈가스', '햄버거', '샌드위치', '부대찌개', '김밥', '오므라이스'],
     hobby: ['유튜브', '넷플릭스', '게임', '음악', '영화', '홈트레이닝', '독서', '드라마', '사진 촬영', '악기 연주', '요가', '명상'],
     study: ['수학', '영어', '코딩', '철학', '경제', '역사', '디자인','일본어','중국어','프랑스어','역사','문학','심리학','예술','연극'],
     topic: ['연예인', '주식', '날씨', '취미', '과거', '미래', '고민', '맛집', '여행', '운동', '음악', '영화', '드라마'],
-    destination: ['제주도', '부산', '강릉', '여수', '대전', '오사카', '도쿄', '파리', '런던', '하와이', '방콕','라스베이거스','뉴욕','로마','시드니','상하이','마카오']
+    destination: Object.keys(DESTINATIONS),
+    gift: ['꽃다발', '손편지', '초콜릿', '향수', '책', '목도리', '기프티콘', '수제 쿠키', '명품 지갑', '목걸이', '따뜻한 커피', '홍삼 세트', '케이크', '상품권', '텀블러', '인형']
 };
 
 const ACTIONS = [
@@ -57,7 +78,7 @@ const ACTIONS = [
     { id: 'eat', name: '식사', place: 'restaurant', text: ['{food}을(를) 사 먹었다', '배부르게 밥을 먹었다'] },
     { id: 'shop', name: '쇼핑', place: 'mart', text: ['장을 봤다', '생필품을 샀다', '충동구매를 했다', '할인 상품을 샀다'] },
     { id: 'walk', name: '산책', place: 'apt', text: ['복도를 걸어다녔다', '단지 내를 산책했다', '바람을 쐬었다'] },
-    { id: 'travel', name: '여행', place: 'travel', text: ['{destination}에서 즐거운 시간을 보냈다', '{destination}의 맛집을 탐방했다', '{destination}의 풍경을 구경했다'] }
+    { id: 'travel', name: '여행', place: 'travel', text: ['즐거운 시간을 보냈다', '맛집을 탐방했다', '풍경을 구경했다','사진을 여러 장 찍었다','이색적인 것들을 구경했다'] }
 ];
 
 const EVENTS = [
@@ -67,8 +88,14 @@ const EVENTS = [
     { type: 'friend', name: '친교', change: 10, text: '와(과) 급격히 친해졌다' },
     { type: 'reconcile', name: '화해', change: 15, text: '와(과) 서로 사과하고 화해했다' },
     { type: 'breakup', name: '이별', change: 0, text: '에게 이별을 고했다' },
-    { type: 'gift', name: '선물', change: 10, text: '에게 작은 선물을 주었다' }
+    { type: 'gift', name: '선물', change: 10, text: '에게 작은 선물을 주었다' },
 ];
+
+let settings = {
+    allowPolyamory: false,
+    useGroups: false,
+    groupNames: { A: "A팀", B: "B팀" }
+};
 
 let characters = [];
 let day = 1;
@@ -108,8 +135,10 @@ function getJosa(word, type) {
     return '';
 }
 
-function fillTemplate(text) {
+function fillTemplate(text, overrides = {}) {
     let replaced = text.replace(/{(\w+)}/g, (match, key) => {
+        if (overrides[key]) return overrides[key];
+        
         const words = WORD_SETS[key];
         return words ? getRandom(words) : match;
     });
@@ -127,6 +156,7 @@ function calculateChemistry(mbti1, mbti2) {
 }
 
 function getRelationshipLabel(score, specialStatus) {
+    if (specialStatus === 'married') return "💍 부부";
     if (specialStatus === 'lover') return "💖 연인";
     if (score <= -80) return "원수";
     if (score <= -60) return "혐오";
@@ -143,6 +173,11 @@ function getRelationshipLabel(score, specialStatus) {
 }
 
 function getHeartHTML(score, specialStatus) {
+    if (specialStatus === 'married') {
+        let html = '';
+        for(let i=0; i<5; i++) html += `<i class="fa-solid fa-heart heart-married"></i>`;
+        return html;
+    }
     if (specialStatus === 'lover') {
         let html = '';
         for(let i=0; i<5; i++) html += `<i class="fa-solid fa-heart heart-lover"></i>`;
@@ -177,7 +212,15 @@ function setSpecialStatus(charId1, charId2, status) {
     const char1 = characters.find(c => c.id === charId1);
     if (!char1.specialRelations) char1.specialRelations = {};
     if (status === null) delete char1.specialRelations[charId2];
-    else char1.specialRelations[charId2] = status;
+    else {
+        char1.specialRelations[charId2] = status;
+        if (status === 'lover' || status === 'married') {
+            if (!char1.relationshipMetadata) char1.relationshipMetadata = {};
+            if (!char1.relationshipMetadata[charId2]) {
+                char1.relationshipMetadata[charId2] = { startDate: day };
+            }
+        }
+    }
 }
 
 function getProbabilisticChange(score) {
@@ -215,17 +258,119 @@ function getProbabilisticChange(score) {
     }
 }
 
+function toggleGroupInputs() {
+    const check = document.getElementById('check-groups');
+    const nameInputs = document.getElementById('group-names-input');
+    const selectArea = document.getElementById('input-group-select');
+    
+    if (check.checked) {
+        nameInputs.classList.remove('hidden');
+        selectArea.classList.remove('hidden');
+    } else {
+        nameInputs.classList.add('hidden');
+        selectArea.classList.add('hidden');
+    }
+    updateSettings();
+}
+
+function updateSettings() {
+    settings.allowPolyamory = document.getElementById('check-polyamory').checked;
+    settings.useGroups = document.getElementById('check-groups').checked;
+    settings.groupNames.A = document.getElementById('name-group-a').value || "A팀";
+    settings.groupNames.B = document.getElementById('name-group-b').value || "B팀";
+    
+    if (settings.useGroups) {
+        characters.forEach(char => {
+            if (!char.group) {
+                char.group = Math.random() < 0.5 ? 'A' : 'B';
+            }
+        });
+    }
+
+    renderCharacterList(); 
+}
+
+function toggleCharGroup(id, event) {
+    if (event) event.stopPropagation();
+    if (!settings.useGroups) return;
+
+    const char = characters.find(c => c.id === id);
+    if (char) {
+        char.group = char.group === 'A' ? 'B' : 'A';
+        renderCharacterList();
+    }
+}
+
 function nextDay() {
     if (characters.length === 0) {
         alert("최소 1명의 캐릭터가 필요합니다.");
         return;
     }
+    
+    updateSettings();
+
     day++;
     const dailyLogs = [];
     
-    characters.forEach(c => c.interactionGroup = null);
+    const activeTravelers = [];
+    const nonTravelers = [];
 
-    characters.forEach(char => {
+    characters.forEach(c => {
+        c.interactionGroup = null;
+        
+        if (c.travelState && c.travelState.daysLeft > 0) {
+            activeTravelers.push(c);
+        } else {
+            if(c.travelState && c.travelState.daysLeft <= 0) {
+                c.travelState = null;
+            }
+            nonTravelers.push(c);
+        }
+    });
+    const travelGroups = {};
+    activeTravelers.forEach(c => {
+        c.travelState.daysLeft--;
+        c.currentLocation = 'travel';
+        c.currentAction = `여행 중 (${c.travelState.destination})`;
+        
+        const tId = c.travelState.travelId || 'solo_' + c.id; 
+        if (!travelGroups[tId]) travelGroups[tId] = [];
+        travelGroups[tId].push(c);
+    });
+
+    for (const tId in travelGroups) {
+        const group = travelGroups[tId];
+        const dest = group[0].travelState.destination;
+        
+        if (group.length === 1) {
+            const char = group[0];
+            let overrides = { destination: dest };
+            const action = ACTIONS.find(a => a.id === 'travel'); 
+            const processedText = fillTemplate(getRandom(action.text), overrides);
+            dailyLogs.push({ text: `${char.name}${getJosa(char.name, '은/는')} ${dest}에서 ${processedText}.`, type: 'solo' });
+        } else {
+            const names = group.map(m => m.name).join(', ');
+            for(let i=0; i<group.length; i++) {
+                group[i].interactionGroup = tId;
+                for(let j=0; j<group.length; j++) {
+                    if(i === j) continue;
+                    const chem = calculateChemistry(group[i].mbti, group[j].mbti);
+                    let change = getProbabilisticChange(chem);
+                    if(change > 0) change += 2; 
+                    updateRelationship(group[i].id, group[j].id, change);
+            }
+            }
+            
+            let overrides = { destination: dest };
+            const action = ACTIONS.find(a => a.id === 'travel');
+            const processedText = fillTemplate(getRandom(action.text), overrides);
+            
+            dailyLogs.push({ text: `${names}${getJosa(group[group.length-1].name, '은/는')} ${dest}에서 함께 ${processedText}.`, type: 'event' });
+        }
+    }
+
+
+    nonTravelers.forEach(char => {
         const isExtrovert = char.mbti[0] === 'E';
         const chanceToGoOut = isExtrovert ? 0.6 : 0.3;
         
@@ -238,7 +383,7 @@ function nextDay() {
     });
 
     const locationMap = {};
-    characters.forEach(char => {
+    nonTravelers.forEach(char => {
         if (!locationMap[char.currentLocation]) locationMap[char.currentLocation] = [];
         locationMap[char.currentLocation].push(char);
     });
@@ -281,31 +426,30 @@ function nextDay() {
                         potentialGroup.forEach(peer => {
                             if (char.id === peer.id) return;
                             const rel = char.relationships[peer.id] || 0;
-                            if (rel < minVal) {
-                                minVal = rel;
-                                uncomfortableTarget = peer;
-                            }
+                            if (rel < minVal) { minVal = rel; uncomfortableTarget = peer; }
                         });
 
-                        let actionPool = ACTIONS.filter(a => {
-                            if (locId === 'apt') return a.place === 'apt';
-                            return PLACES.find(p=>p.id === locId).name.includes(a.place) || a.place === locId || a.place === 'out';
-                        });
-                        if (actionPool.length === 0) actionPool = ACTIONS.filter(a => a.place === 'out');
-                        if (locId === 'apt') actionPool = ACTIONS.filter(a => a.place === 'apt');
+                        let actionPool = ACTIONS.filter(a => a.place === locId);
+                        if (actionPool.length === 0) actionPool = ACTIONS.filter(a => a.place === 'apt');
 
                         const action = getRandom(actionPool);
-                        const processedText = fillTemplate(getRandom(action.text));
-                        char.currentAction = action.name;
-
-                        let logText = "";
-                        if (uncomfortableTarget) {
-                            logText = `${char.name}${getJosa(char.name, '은/는')} ${uncomfortableTarget.name}${getJosa(uncomfortableTarget.name, '이/가')} 불편해 자리를 피했다. ${getLocationName(locId)}에서 홀로 ${processedText}.`;
-                        } else {
-                            logText = `${char.name}${getJosa(char.name, '은/는')} 어색한 분위기를 피해 ${getLocationName(locId)}에서 홀로 ${processedText}.`;
-                        }
+                        let overrides = {};
                         
-                        dailyLogs.push({ text: logText, type: 'solo' });
+                        if (action) {
+                            const processedText = fillTemplate(getRandom(action.text), overrides);
+                            char.currentAction = action.name;
+
+                            let logText = "";
+                            let locName = getLocationName(locId);
+                            
+                            if (uncomfortableTarget) {
+                                logText = `${char.name}${getJosa(char.name, '은/는')} ${uncomfortableTarget.name}${getJosa(uncomfortableTarget.name, '이/가')} 불편해 자리를 피했다. ${locName}에서 홀로 ${processedText}.`;
+                            } else {
+                                logText = `${char.name}${getJosa(char.name, '은/는')} 어색한 분위기를 피해 ${locName}에서 홀로 ${processedText}.`;
+                            }
+                            
+                            dailyLogs.push({ text: logText, type: 'solo' });
+                        }
                     });
                     continue; 
                 }
@@ -315,8 +459,8 @@ function nextDay() {
             const actor = group[0];
             const groupId = Date.now() + Math.random();
 
-            let isTravel = false;
-            if (group.length >= 2) {
+            let isNewTravel = false;
+            if (group.length >= 2 && locId !== 'travel') {
                 let minRel = 100;
                 for(let i=0; i<group.length; i++) {
                     for(let j=i+1; j<group.length; j++) {
@@ -324,7 +468,9 @@ function nextDay() {
                         if (s < minRel) minRel = s;
                     }
                 }
-                if (minRel >= 50 && Math.random() < 0.2) isTravel = true;
+                if (minRel >= 50 && Math.random() < 0.2) {
+                    isNewTravel = true;
+            }
             }
 
             if (group.length > 1) {
@@ -334,27 +480,80 @@ function nextDay() {
             if (group.length === 1) {
                 let actionPool = ACTIONS.filter(a => {
                     if (locId === 'apt') return a.place === 'apt';
+                    if (locId === 'travel') return a.id === 'travel';
                     return PLACES.find(p=>p.id === locId).name.includes(a.place) || a.place === locId || a.place === 'out';
                 });
                 if (actionPool.length === 0) actionPool = ACTIONS.filter(a => a.place === 'out');
-                if (locId === 'apt') actionPool = ACTIONS.filter(a => a.place === 'apt');
 
                 const action = getRandom(actionPool);
-                const processedText = fillTemplate(getRandom(action.text));
                 
-                actor.currentAction = action.name;
-                dailyLogs.push({ text: `${actor.name}${getJosa(actor.name, '은/는')} ${getLocationName(locId)}에서 ${processedText}.`, type: 'solo' });
-            
-            } else if (group.length === 2) {
+                if (action && action.id === 'travel' && !actor.travelState) {
+                    const dest = getRandom(WORD_SETS.destination);
+                    const range = DESTINATIONS[dest] || {min:1, max:3};
+                    const duration = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+                    actor.travelState = { destination: dest, daysLeft: duration - 1 };
+                    actor.currentLocation = 'travel'; 
+                    dailyLogs.push({ text: `${actor.name}${getJosa(actor.name, '은/는')} ${dest}${getJosa(dest, '을/를')} 향해 ${duration}일간 여행을 떠났다.`, type: 'solo' });
+                } else if (action) {
+                    actor.currentAction = action.name;
+                    const processedText = fillTemplate(getRandom(action.text));
+                    let locName = getLocationName(locId);
+                    dailyLogs.push({ text: `${actor.name}${getJosa(actor.name, '은/는')} ${locName}에서 ${processedText}.`, type: 'solo' });
+                }
+            }
+
+            else if (group.length === 2) {
                 const target = group[1];
                 
-                if (Math.random() < 0.15 && !isTravel) {
-                    const evt = getRandom(EVENTS);
-                    const chemistryScore = calculateChemistry(actor.mbti, target.mbti);
-                    const currentScore = actor.relationships[target.id] || 0;
-                    const isLovers = actor.specialRelations?.[target.id] === 'lover';
-                    let logText = "";
+                const evt = getRandom(EVENTS);
+                const chemistryScore = calculateChemistry(actor.mbti, target.mbti);
+                const currentScore = actor.relationships[target.id] || 0;
+                const isLovers = actor.specialRelations?.[target.id] === 'lover';
+                const isMarried = actor.specialRelations?.[target.id] === 'married';
+                
+                const actorMarriedToOther = actor.specialRelations && Object.values(actor.specialRelations).includes('married') && !isMarried;
+                const targetMarriedToOther = target.specialRelations && Object.values(target.specialRelations).includes('married') && !isMarried;
 
+                const isSameGroup = settings.useGroups && actor.group && target.group && (actor.group === target.group);
+
+                let logText = "";
+                let proposalHappened = false;
+
+                if (isLovers && !isMarried && !isNewTravel) {
+                    if (Math.random() < 0.01) {
+                        proposalHappened = true;
+                        const successChance = Math.min(0.95, Math.max(0.1, (currentScore + target.relationships[actor.id]) / 200)); 
+                        
+                        if (Math.random() < successChance) {
+                            setSpecialStatus(actor.id, target.id, 'married');
+                            setSpecialStatus(target.id, actor.id, 'married');
+                            updateRelationship(actor.id, target.id, 50);
+                            updateRelationship(target.id, actor.id, 50);
+                            
+                            [actor, target].forEach(person => {
+                                for(let key in person.specialRelations) {
+                                    if(person.specialRelations[key] === 'lover') delete person.specialRelations[key];
+                                }
+                            });
+
+                            logText = `[청혼] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 평생을 함께하자고 청혼했고, ${target.name}${getJosa(target.name, '이/가')} 승낙해 부부가 되었다! 🎉`;
+                            dailyLogs.push({ text: logText, type: 'event' });
+                        } else if (Math.random() < 0.5) {
+                            setSpecialStatus(actor.id, target.id, null); setSpecialStatus(target.id, actor.id, null);
+                             updateRelationship(actor.id, target.id, -50);
+                             updateRelationship(target.id, actor.id, -50);
+                            logText = `[청혼] ${actor.name}${getJosa(actor.name, '은/는')} 청혼했지만, ${target.name}${getJosa(target.name, '은/는')} 부담스럽다며 이별을 고했다. 💔`;
+                            dailyLogs.push({ text: logText, type: 'event' });
+                        } else {
+                            updateRelationship(actor.id, target.id, -10);
+                            logText = `[청혼] ${actor.name}${getJosa(actor.name, '은/는')} 청혼했지만, ${target.name}${getJosa(target.name, '은/는')} 아직은 때가 아니라며 정중히 거절했다.`;
+                            dailyLogs.push({ text: logText, type: 'event' });
+                        }
+                    }
+                }
+
+                if (!proposalHappened) {
+                    if (Math.random() < 0.15 && !isNewTravel) {
                     if (evt.type === 'reconcile') {
                         const actorHates = actor.relationships[target.id] < 0;
                         const targetHates = target.relationships[actor.id] < 0;
@@ -372,35 +571,96 @@ function nextDay() {
                         }
                     } 
                     else if (evt.type === 'confess') {
-                        if (actor.isMinor !== target.isMinor) {
-                            updateRelationship(actor.id, target.id, 2); updateRelationship(target.id, actor.id, 2);
-                            logText = `${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 호감이 있지만, 나이 차이를 의식해 마음을 접었다.`;
-                            actor.currentAction = "대화"; target.currentAction = "대화";
-                            dailyLogs.push({ text: logText, type: 'social' });
+                            if (isMarried) {
+                                dailyLogs.push({ text: `${actor.name}${getJosa(actor.name, '와/과')} ${target.name}${getJosa(target.name, '은/는')} 부부로서 행복한 시간을 보냈다.`, type: 'social' });
+                            } else if (actorMarriedToOther || targetMarriedToOther) {
+                                dailyLogs.push({ text: `${actor.name}${getJosa(actor.name, '와/과')} ${target.name}${getJosa(target.name, '은/는')} 가정을 생각하며 예의 바르게 거리를 두었다.`, type: 'social' });
+                            } else if (isSameGroup) {
+                                logText = `${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 마음이 있지만, 같은 ${settings.groupNames[actor.group]}이기 때문에 고백을 포기했다.`;
+                                dailyLogs.push({ text: logText, type: 'social' });
+                            } else if (actor.isMinor !== target.isMinor) {
+                                updateRelationship(actor.id, target.id, 2); updateRelationship(target.id, actor.id, 2);
+                                logText = `${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 호감이 있지만, 나이 차이를 의식해 마음을 접었다.`;
+                                dailyLogs.push({ text: logText, type: 'social' });
                         } else {
                             if (isLovers) {
-                                updateRelationship(actor.id, target.id, 5); updateRelationship(target.id, actor.id, 5);
-                                logText = `[사랑] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 다시 사랑을 맹세했다.`;
-                            } else if (currentScore > 50) {
-                                const chemBonus = (chemistryScore - 3) * 0.05;
-                                const successChance = 0.4 + (currentScore/200) + chemBonus;
-                                if (Math.random() < successChance) {
-                                    setSpecialStatus(actor.id, target.id, 'lover'); setSpecialStatus(target.id, actor.id, 'lover');
-                                    updateRelationship(actor.id, target.id, 15); updateRelationship(target.id, actor.id, 15);
-                                    logText = `[고백 성공] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 고백했고, 연인이 되었다! 💖`;
+                                    updateRelationship(actor.id, target.id, 5); updateRelationship(target.id, actor.id, 5);
+                                    logText = `[사랑] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 다시 사랑을 맹세했다.`;
+                                    dailyLogs.push({ text: logText, type: 'event' });
+                                } else if (!settings.allowPolyamory && (Object.values(actor.specialRelations || {}).includes('lover'))) {
+                                    logText = `${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 끌렸지만, 현재 연인에게 충실하기로 했다.`;
+                                    dailyLogs.push({ text: logText, type: 'social' });
+                                } else if (currentScore > 50) {
+                                    const chemBonus = (chemistryScore - 3) * 0.05;
+                                    const successChance = 0.4 + (currentScore/200) + chemBonus;
+                                    if (Math.random() < successChance) {
+                                        let targetHasLover = false;
+                                        let targetLoverId = null;
+                                        
+                                        if (!settings.allowPolyamory) {
+                                             for(let key in target.specialRelations) {
+                                                 if (target.specialRelations[key] === 'lover') {
+                                                     targetHasLover = true;
+                                                     targetLoverId = key;
+                                                     break;
+                                                 }
+                                             }
+                                        }
+
+                                        if (targetHasLover) {
+                                            const oldLoverRel = target.relationships[targetLoverId] || 0;
+                                            const newActorRel = target.relationships[actor.id] || 0;
+                                            
+                                            if (newActorRel > oldLoverRel + 20) {
+                                                 const oldLoverName = characters.find(c => c.id === targetLoverId)?.name || "전 연인";
+                                                 
+                                                 setSpecialStatus(target.id, targetLoverId, null);
+                                                 setSpecialStatus(targetLoverId, target.id, null);
+                                                 updateRelationship(target.id, targetLoverId, -20);
+                                                 updateRelationship(targetLoverId, target.id, -40);
+
+                                                 setSpecialStatus(actor.id, target.id, 'lover');
+                                                 setSpecialStatus(target.id, actor.id, 'lover');
+                                                 updateRelationship(actor.id, target.id, 15);
+                                                 updateRelationship(target.id, actor.id, 15);
+                                                 
+                                                 logText = `[환승 이별] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 고백했다. ${target.name}${getJosa(target.name, '은/는')} ${oldLoverName}${getJosa(oldLoverName,'과/와')} 헤어지고 ${actor.name}${getJosa(actor.name, '을/를')} 선택했다! 💘`;
+                                            } else {
+                                                 updateRelationship(actor.id, target.id, -5);
+                                                 logText = `[고백 거절] ${actor.name}${getJosa(actor.name, '은/는')} 고백했지만, ${target.name}${getJosa(target.name, '은/는')} 현재 연인이 있다며 거절했다.`;
+                                            }
+                                        } else {
+                                            setSpecialStatus(actor.id, target.id, 'lover');
+                                            setSpecialStatus(target.id, actor.id, 'lover');
+                                            updateRelationship(actor.id, target.id, 15);
+                                            updateRelationship(target.id, actor.id, 15);
+                                        logText = `[고백 성공] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 고백했고, 연인이 되었다! 💖`;
+                                        }
+                                        dailyLogs.push({ text: logText, type: 'event' });
+                                    } else {
+                                        updateRelationship(actor.id, target.id, -5); updateRelationship(target.id, actor.id, -2);
+                                        logText = `[고백 실패] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 차였다...`;
+                                        dailyLogs.push({ text: logText, type: 'event' });
+                                    }
                                 } else {
-                                    updateRelationship(actor.id, target.id, -5); updateRelationship(target.id, actor.id, -2);
-                                    logText = `[고백 실패] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 차였다...`;
+                                    logText = `[고백 포기] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 고백하려다 참았다.`;
+                                    dailyLogs.push({ text: logText, type: 'event' });              
                                 }
-                            } else {
-                                logText = `[고백 포기] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 고백하려다 참았다.`;
                             }
-                            actor.currentAction = evt.name; target.currentAction = `(대상) ${evt.name}`;
-                            dailyLogs.push({ text: logText, type: 'event' });
-                        }
-                    } 
-                    else if (evt.type === 'breakup') {
-                        if (isLovers) {
+                        } 
+                        else if (evt.type === 'breakup' || evt.type === 'cut') {
+                            if (isMarried) {
+                                if (Math.random() < 0.05) {
+                                    setSpecialStatus(actor.id, target.id, null); setSpecialStatus(target.id, actor.id, null);
+                                    updateRelationship(actor.id, target.id, -50); updateRelationship(target.id, actor.id, -50);
+                                    logText = `[이혼] ${actor.name}${getJosa(actor.name, '와/과')} ${target.name}${getJosa(target.name, '은/는')} 갈등 끝에 이혼했다. 💔`;
+                                    dailyLogs.push({ text: logText, type: 'event' });
+                                } else {
+                                    updateRelationship(actor.id, target.id, -5);
+                                    logText = `[위기] ${actor.name}${getJosa(actor.name, '와/과')} ${target.name}${getJosa(target.name, '은/는')} 부부 싸움을 크게 했다.`;
+                                    dailyLogs.push({ text: logText, type: 'event' });
+                                }
+                            } else if (isLovers) {
                             if (Math.random() < 0.3 - (currentScore/200)) {
                                 setSpecialStatus(actor.id, target.id, null); setSpecialStatus(target.id, actor.id, null);
                                 updateRelationship(actor.id, target.id, -25); updateRelationship(target.id, actor.id, -25);
@@ -429,7 +689,26 @@ function nextDay() {
                             actor.currentAction = "절교"; target.currentAction = "절교";
                             dailyLogs.push({ text: logText, type: 'event' });
                         }
-                    } 
+                    }
+                    else if (evt.type === 'gift') {
+                        const giftName = getRandom(WORD_SETS.gift);
+                        const val = Math.floor(Math.random() * 41) - 20;
+                        
+                        let react = "";
+                        if (val <= -11) react = "난색을 표하며 거절했다."; 
+                        else if (val <= -1) react = "부담스러워하며 억지로 받았다.";
+                        else if (val <= 7) react = "고맙다며 받았다.";
+                        else react = "무척 기뻐하며 감사를 표했다.";
+
+                        updateRelationship(actor.id, target.id, val); 
+                        updateRelationship(target.id, actor.id, val); 
+
+                        logText = `[선물] ${actor.name}${getJosa(actor.name, '은/는')} ${target.name}에게 ${giftName}${getJosa(giftName, '을/를')} 선물했다. ${target.name}${getJosa(target.name, '은/는')} ${react}`;
+                        
+                        actor.currentAction = "선물";
+                        target.currentAction = "선물 받음";
+                        dailyLogs.push({ text: logText, type: 'event' });
+                    }
                     else {
                         let c1 = evt.change + Math.floor(Math.random()*5);
                         let c2 = evt.change + Math.floor(Math.random()*5);
@@ -441,52 +720,69 @@ function nextDay() {
                     }
                 } 
                 else {
-                    let action = null;
-                    if (isTravel) {
-                        action = ACTIONS.find(a => a.id === 'travel');
-                        group.forEach(m => m.currentLocation = 'travel');
-                    } else {
-                        let actionPool = ACTIONS.filter(a => {
-                            if (locId === 'apt') return a.place === 'apt';
-                            return PLACES.find(p=>p.id === locId).name.includes(a.place) || a.place === locId || a.place === 'out';
-                        });
-                        if (actionPool.length === 0) actionPool = ACTIONS.filter(a => a.place === 'out');
-                        if (locId === 'apt') actionPool = ACTIONS.filter(a => a.place === 'apt');
-                        action = getRandom(actionPool);
+                        if (isNewTravel) {
+                            const dest = getRandom(WORD_SETS.destination);
+                            const range = DESTINATIONS[dest] || {min:1, max:3};
+                            const duration = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+                            const tId = 'travel_' + Date.now() + '_' + Math.random();
+                            
+                            [actor, target].forEach(m => {
+                                m.travelState = { destination: dest, daysLeft: duration - 1, travelId: tId };
+                                m.currentLocation = 'travel';
+                            });
+                            
+                            dailyLogs.push({ text: `${actor.name}${getJosa(actor.name, '와/과')} ${target.name}${getJosa(target.name, '은/는')} 함께 ${dest}${getJosa(dest, '을/를')} 향해 ${duration}일간 여행을 떠났다.`, type: 'event' });
+                        } else {
+                            let actionPool = ACTIONS.filter(a => a.place === locId);
+                            if (actionPool.length === 0) actionPool = ACTIONS.filter(a => a.place === 'apt');
+                            
+                            const action = getRandom(actionPool);
+
+                            const processedText = fillTemplate(getRandom(action.text));
+                            const chemistryScore = calculateChemistry(actor.mbti, target.mbti);
+                            
+                            updateRelationship(actor.id, target.id, getProbabilisticChange(chemistryScore));
+                            updateRelationship(target.id, actor.id, getProbabilisticChange(chemistryScore));
+
+                            actor.currentAction = action.name;
+                            target.currentAction = `함께 ${action.name}`;
+
+                            let locName = getLocationName(locId);
+                            dailyLogs.push({ text: `${actor.name}${getJosa(actor.name, '와/과')} ${target.name}${getJosa(target.name, '은/는')} ${locName}에서 함께 ${processedText}.`, type: 'social' });
+                            
+                        }
                     }
-
-                    const processedText = fillTemplate(getRandom(action.text));
-                    const chemistryScore = calculateChemistry(actor.mbti, target.mbti);
-                    
-                    updateRelationship(actor.id, target.id, getProbabilisticChange(chemistryScore));
-                    updateRelationship(target.id, actor.id, getProbabilisticChange(chemistryScore));
-
-                    actor.currentAction = action.name;
-                    target.currentAction = `함께 ${action.name}`;
-
-                    dailyLogs.push({ text: `${actor.name}${getJosa(actor.name, '와/과')} ${target.name}${getJosa(target.name, '은/는')} ${isTravel ? '여행을 떠나' : getLocationName(locId)+'에서'} ${processedText}.`, type: isTravel ? 'event' : 'social' });
                 }
 
             } else {
-                let action = null;
-                if (isTravel) {
-                    action = ACTIONS.find(a => a.id === 'travel');
-                    group.forEach(m => m.currentLocation = 'travel');
-                } else {
-                    let actionPool = ACTIONS.filter(a => ['eat', 'gathering', 'leisure', 'shop', 'travel'].includes(a.id));
-                    actionPool = actionPool.filter(a => {
-                        if (locId === 'apt') return a.place === 'apt';
-                        return PLACES.find(p=>p.id === locId).name.includes(a.place) || a.place === locId || a.place === 'out';
-                    });
-                    if(actionPool.length === 0) actionPool = [ACTIONS[0]];
-                    action = getRandom(actionPool);
-                }
+                let action = null; 
 
-                const processedText = fillTemplate(getRandom(action.text));
+                if (isNewTravel) {
+                    const dest = getRandom(WORD_SETS.destination);
+                    const range = DESTINATIONS[dest] || {min:1, max:3};
+                    const duration = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+                    const tId = 'travel_' + Date.now() + '_' + Math.random();
+                    
+                    group.forEach(m => {
+                        m.travelState = { destination: dest, daysLeft: duration - 1, travelId: tId };
+                        m.currentLocation = 'travel';
+                        m.currentAction = '여행';
+                    });
+                    
+                    const names = group.map(m => m.name).join(', ');
+                    dailyLogs.push({ text: `${names}${getJosa(group[group.length-1].name, '은/는')} 다 같이 ${dest}(으)로 ${duration}일간 여행을 떠났다.`, type: 'event' });
+                } else {
+                    let actionPool = ACTIONS.filter(a => a.place === locId);
+                    if(actionPool.length === 0) actionPool = ACTIONS.filter(a => a.place === 'apt');
+                    
+                    action = getRandom(actionPool);
+                    
+                    if (action && action.text) {
+                    const processedText = fillTemplate(getRandom(action.text));
                 const names = group.map(m => m.name).join(', ');
                 
                 for(let i=0; i<group.length; i++) {
-                    group[i].currentAction = isTravel ? action.name : `함께 ${action.name}`;
+                        group[i].currentAction = `함께 ${action.name}`;
                     for(let j=0; j<group.length; j++) {
                         if(i === j) continue;
                         const chem = calculateChemistry(group[i].mbti, group[j].mbti);
@@ -494,10 +790,13 @@ function nextDay() {
                     }
                 }
 
-                dailyLogs.push({ 
-                    text: `${names}${getJosa(group[group.length-1].name, '은/는')} ${isTravel ? '여행을 떠나' : getLocationName(locId)+'에서'} 함께 ${processedText}.`, 
-                    type: isTravel ? 'event' : 'social' 
-                });
+                    let locName = getLocationName(locId);
+                        dailyLogs.push({ 
+                            text: `${names}${getJosa(group[group.length-1].name, '은/는')} ${locName}에서 ${processedText} (단체 행동)`, 
+                                type: 'social' 
+                        });
+                    }
+                }
             }
         }
     }
@@ -520,6 +819,12 @@ function addCharacter() {
     const mbtiInput = document.getElementById('input-mbti');
     const roomInput = document.getElementById('input-room');
     const isMinorInput = document.getElementById('input-minor');
+    
+    let selectedGroup = null;
+    if (settings.useGroups) {
+        const groupRadio = document.querySelector('input[name="char-group"]:checked');
+        if (groupRadio) selectedGroup = groupRadio.value;
+    }
 
     const name = nameInput.value.trim();
     if (!name) return alert("이름을 입력해주세요.");
@@ -536,6 +841,7 @@ function addCharacter() {
         mbti: mbtiInput.value, 
         room: room,
         isMinor: isMinorInput.checked,
+        group: selectedGroup,
         currentLocation: 'apt', 
         currentAction: '-', 
         relationships: {}, 
@@ -585,16 +891,32 @@ function renderCharacterList() {
     characters.forEach(char => {
         const div = document.createElement('div');
         div.className = "bg-white dark:bg-slate-700 p-4 rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm relative group hover:shadow-md transition-shadow cursor-pointer";
-        const badge = char.isMinor 
-            ? `<span class="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full ml-1" title="미성년자">🌱</span>` 
-            : `<span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full ml-1 hidden" title="성인">adult</span>`;
+        
+        let badges = "";
+        
+        // Group Badge
+        if (settings.useGroups && char.group) {
+            const groupName = settings.groupNames[char.group] || char.group;
+            const colorClass = char.group === 'A' 
+                ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" 
+                : "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300";
+            
+            badges += `<button onclick="toggleCharGroup('${char.id}', event)" class="mr-1 text-xs px-2 py-1 rounded-full ${colorClass} hover:opacity-80 transition-opacity" title="클릭하여 그룹 변경">${groupName}</button>`;
+        }
+
+        // Minor Badge
+        if (char.isMinor) {
+            badges += `<span class="text-[10px] bg-green-100 dark:bg-yellow-900 text-green-600 dark:text-green-300 px-2 py-1 rounded-full">🌱</span>`;
+        }
 
         if (affectionMode) {
             div.onclick = () => showAffectionModal(char.id);
             div.innerHTML = `
                 <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-bold text-lg dark:text-white">${char.name}${badge}</h3>
-                    <span class="text-xs bg-brand-100 dark:bg-brand-900 text-brand-600 dark:text-brand-300 px-2 py-1 rounded-full">${char.mbti}</span>
+                    <div class="flex flex-col">
+                        <h3 class="font-bold text-lg dark:text-white flex items-center gap-1">${char.name} <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(${char.mbti})</span></h3>
+                         <div class="flex flex-wrap gap-1 mt-1">${badges}</div>
+                    </div>
                 </div>
                 <div class="text-sm text-slate-500 dark:text-slate-400 mb-2"><i class="fa-solid fa-door-closed mr-1"></i> ${char.room}호</div>
                 <div class="text-center mt-2 p-2 bg-brand-50 dark:bg-slate-800 rounded-lg text-brand-600 dark:text-brand-400 text-sm font-medium">클릭하여 관계 보기</div>
@@ -605,8 +927,11 @@ function renderCharacterList() {
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-600 flex items-center justify-center text-lg"><i class="fa-regular fa-user"></i></div>
                     <div>
-                        <h3 class="font-bold text-slate-900 dark:text-white leading-tight">${char.name}${badge}</h3>
-                        <div class="text-xs text-slate-500 dark:text-slate-400">${char.mbti} · ${char.room}호</div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-bold text-slate-900 dark:text-white leading-tight">${char.name}</h3>
+                        </div>
+                         <div class="flex flex-wrap gap-1 mt-1">${badges}</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">${char.mbti} · ${char.room}호</div>
                     </div>
                 </div>
             `;
